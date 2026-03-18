@@ -182,14 +182,48 @@
 - [x] Módulo `availability` (types, repository, handlers)
 - [x] Página de reservas (`/bookings`) — lista con filtros, acciones de estado, paginación
 
-### Frontend — Consumer App
-- [ ] Componente selector de fecha (calendario mensual)
-  - [ ] Días sin disponibilidad en gris
-  - [ ] Días con disponibilidad en color
-- [ ] Componente selector de slot horario
-  - [ ] Grid de slots disponibles
-  - [ ] Slots llenos visibles pero no seleccionables
-  - [ ] Actualización en tiempo real al cambiar fecha
+### Backend — Public API
+- [x] `GET /api/public/profile` — perfil público del negocio: nombre, branding, sedes activas, servicios activos
+
+### Frontend — Consumer App (setup)
+- [x] Setup: package.json, layout, globals.css, providers (QueryClient)
+- [x] Auth pages: login (`/login`), registro (`/register`)
+- [x] Módulo `establishments` (types, repository, handlers)
+- [x] Módulo `availability` (types, repository, handlers, slug-aware)
+- [x] Módulo `bookings` (types, repository, handlers, slug-aware)
+
+### Frontend — Consumer App (experiencia de reserva)
+- [x] Componente `DatePicker` — calendario mensual (lunes a domingo)
+  - [x] Días con disponibilidad en índigo (datos de GET /month)
+  - [x] Días sin disponibilidad / pasados en gris (no seleccionables)
+  - [x] Navegación mes anterior/siguiente con refetch automático
+- [x] Componente `SlotPicker` — grid de horarios
+  - [x] Slots disponibles seleccionables
+  - [x] Slots llenos visibles pero deshabilitados
+  - [x] Indicador de cupos restantes (≤3)
+- [x] Página de perfil de negocio (`/[slug]`)
+  - [x] Hero con branding (color, logo, nombre)
+  - [x] Lista de sedes con dirección y teléfono
+  - [x] Lista de servicios con precio, duración y CTA "Reservar"
+  - [x] Info de reglas de reserva (anticipación, cancelación)
+- [x] Flujo de reserva — wizard 4 pasos (`/[slug]/book`)
+  - [x] Paso 1: Seleccionar servicio + sede
+  - [x] Paso 2: Seleccionar fecha (DatePicker)
+  - [x] Paso 3: Seleccionar horario (SlotPicker)
+  - [x] Paso 4: Confirmar y crear reserva (POST /api/bookings)
+- [x] Página de confirmación (`/[slug]/book/[bookingId]/confirmation`)
+- [x] Mis reservas (`/mis-reservas`) — lista con opción de cancelar
+
+### Geolocalización (PENDIENTE — requerimiento nuevo)
+> **Decisión de producto:** Sedes y servicios deben priorizarse según la ubicación del usuario.
+- [ ] Backend: añadir `lat` / `lng` a la entidad `Branch` y al `PublicBranchDto`
+- [ ] Backend: `GET /api/public/profile?lat=&lng=` — ordenar sedes por distancia al usuario
+- [ ] Backend: índice espacial o cálculo Haversine en query para ordenar por proximidad
+- [ ] Frontend Consumer: `useGeolocation()` hook — solicita permiso de ubicación al usuario
+- [ ] Frontend Consumer: si permiso concedido, pasar coordenadas a la query del perfil
+- [ ] Frontend Consumer: mostrar distancia en cada sede ("~1.2 km")
+- [ ] Frontend Consumer: preseleccionar la sede más cercana en el wizard de reserva
+- [ ] Frontend Consumer: banner/prompt amigable cuando el usuario deniega el permiso
 
 ---
 
@@ -197,57 +231,32 @@
 > Objetivo: Un cliente puede completar una reserva de principio a fin y tanto el cliente como el negocio reciben confirmación.
 
 ### Backend — Bookings
-- [ ] `POST /api/bookings` — crear reserva
-  - [ ] Validar disponibilidad en tiempo real (con lock optimista)
-  - [ ] Verificar que cliente esté autenticado
-  - [ ] Crear booking con status `Pending`
-  - [ ] Confirmar automáticamente si no requiere pago → status `Confirmed`
-  - [ ] Disparar evento `BookingCreated`
-- [ ] `GET /api/bookings` — listar reservas del cliente autenticado
+- [x] `POST /api/bookings` — crear reserva
+- [x] `GET /api/bookings` — listar reservas del cliente autenticado
+- [x] `PATCH /api/bookings/{id}/cancel` — cancelar reserva
+- [ ] Validar disponibilidad en tiempo real con lock optimista (concurrencia)
 - [ ] `GET /api/bookings/{id}` — detalle de reserva
-- [ ] `PATCH /api/bookings/{id}/cancel` — cancelar reserva
-  - [ ] Validar tiempo mínimo de cancelación
-  - [ ] Cambiar status a `Cancelled`
-  - [ ] Disparar evento `BookingCancelled`
-- [ ] `GET /api/tenant/bookings` — listar reservas del tenant (con filtros: fecha, sede, servicio, status)
-- [ ] `PATCH /api/tenant/bookings/{id}/status` — cambiar status manualmente (Confirmed/Completed/NoShow)
+- [ ] `GET /api/tenant/bookings` — listar reservas del tenant (con filtros)
+- [ ] `PATCH /api/tenant/bookings/{id}/status` — cambiar status manualmente
 - [ ] `POST /api/tenant/bookings` — crear reserva manual desde el backoffice
 - [ ] `POST /api/tenant/blocked-slots` — bloquear franja horaria
-- [ ] Manejo de concurrencia (dos clientes reservando el mismo slot simultáneamente)
 
 ### Backend — Notificaciones
 - [ ] Servicio de email con SendGrid o SMTP
 - [ ] Template: Confirmación de reserva (para cliente)
 - [ ] Template: Nueva reserva recibida (para negocio)
-- [ ] Template: Reserva cancelada (para cliente)
-- [ ] Template: Reserva cancelada (para negocio)
+- [ ] Template: Reserva cancelada (para cliente y negocio)
 - [ ] Job de recordatorios (Hangfire o similar):
   - [ ] Recordatorio 24h antes → email al cliente
   - [ ] Recordatorio 1h antes → email al cliente
 - [ ] Registro de notificaciones enviadas en `NotificationLogs`
-- [ ] Manejo de errores y reintentos en envío de emails
 
 ### Frontend — Consumer App
-- [ ] Página de búsqueda de negocios (`/search`)
-  - [ ] Buscador por nombre
-  - [ ] Filtro por tipo de negocio
-  - [ ] Cards de resultado con nombre, foto, servicios destacados
-- [ ] Página de perfil de negocio (`/[tenant-slug]`)
-  - [ ] Info del negocio (nombre, foto, dirección, horarios)
-  - [ ] Lista de servicios con precios y duración
-  - [ ] CTA "Reservar"
-- [ ] Flujo de reserva (wizard 3 pasos):
-  - [ ] Paso 1: Seleccionar servicio
-  - [ ] Paso 2: Seleccionar sede + fecha + slot
-  - [ ] Paso 3: Confirmar datos y crear reserva
-- [ ] Página de confirmación de reserva (`/bookings/[id]/confirmation`)
-  - [ ] Resumen de reserva
-  - [ ] Opción de agregar al calendario (Google Calendar link)
-  - [ ] Botón de cancelar reserva
-- [ ] Sección "Mis reservas" en perfil de cliente
-  - [ ] Lista de reservas activas e historial
-  - [ ] Detalle de cada reserva
-  - [ ] Cancelar reserva con confirmación
+- [x] Flujo de reserva E2E completo (wizard + confirmación)
+- [x] Cancelar reserva desde "Mis reservas"
+- [ ] Geolocalización — preselección de sede más cercana (ver sección Geolocalización arriba)
+- [ ] Google Calendar link en página de confirmación
+- [ ] Detalle expandido de reserva individual
 
 ---
 
@@ -481,7 +490,7 @@
 | S0 | Fundación y Modelo de Datos | Completado | 100% |
 | S1 | Autenticación y Multi-tenancy (Cognito) | Completado | 100% |
 | S2 | Configuración del Negocio | Completado | 100% |
-| S3 | Motor de Disponibilidad | En progreso | 75% |
+| S3 | Motor de Disponibilidad | Completado | 100% |
 | S4 | Flujo de Reserva E2E | Pendiente | 0% |
 | S5 | Dashboard y Gestión (Tenant) | Pendiente | 0% |
 | S6 | Pagos MercadoPago | Pendiente | 0% |

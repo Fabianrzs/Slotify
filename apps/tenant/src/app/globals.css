@@ -3,14 +3,33 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: 79 70 229;    /* indigo-600 */
-  --color-primary-hover: 67 56 202; /* indigo-700 */
+  --color-primary: 79 70 229;
+  --color-primary-hover: 67 56 202;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  @apply text-gray-900 antialiased;
+  @apply text-gray-900 antialiased bg-slate-50;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-200 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-300;
 }

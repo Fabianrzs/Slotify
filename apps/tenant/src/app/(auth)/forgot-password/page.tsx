@@ -78,7 +78,11 @@ export default function ForgotPasswordPage() {
             </form>
           ) : (
             <form
-              onSubmit={resetForm.handleSubmit((data) => resetPassword.mutate(data))}
+              onSubmit={resetForm.handleSubmit((data) => resetPassword.mutate({
+                email: data.email!,
+                code: data.code!,
+                newPassword: data.newPassword!,
+              }))}
               className="space-y-5"
             >
               <p className="text-sm text-gray-600 bg-indigo-50 rounded-lg px-4 py-3">

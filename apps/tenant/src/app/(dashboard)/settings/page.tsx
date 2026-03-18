@@ -68,7 +68,11 @@ export default function SettingsPage() {
 
   async function onSubmit(data: SettingsFormSchema) {
     const payload: UpdateSettingsPayload = {
-      ...data,
+      timezone: data.timezone!,
+      currency: data.currency!,
+      minAdvanceBookingHours: data.minAdvanceBookingHours!,
+      maxAdvanceBookingDays: data.maxAdvanceBookingDays!,
+      cancellationWindowHours: data.cancellationWindowHours!,
       logoUrl: data.logoUrl || undefined,
       primaryColor: data.primaryColor || undefined,
     }

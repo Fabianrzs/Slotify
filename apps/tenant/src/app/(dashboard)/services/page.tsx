@@ -180,7 +180,11 @@ function ServiceFormModal({ service, onClose }: { service: Service | null; onClo
 
   async function onSubmit(data: ServiceSchema) {
     const payload = {
-      ...data,
+      name: data.name!,
+      durationMinutes: data.durationMinutes!,
+      price: data.price!,
+      currency: data.currency!,
+      maxCapacity: data.maxCapacity!,
       categoryId: data.categoryId || undefined,
       description: data.description || undefined,
     }

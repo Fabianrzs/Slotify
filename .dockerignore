@@ -1,0 +1,21 @@
+**/.git
+**/.gitignore
+**/.idea
+**/.vs
+**/bin
+**/obj
+**/*.user
+# Next.js build outputs (rebuilt in Docker)
+**/.next
+**/out
+# Node modules (installed in Docker)
+**/node_modules
+# API test projects
+apps/api/tests
+# Other apps not needed per service
+apps/api
+apps/landing
+# Env files with secrets
+**/.env
+**/.env.local
+**/.env.*.local

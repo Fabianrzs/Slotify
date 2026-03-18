@@ -62,8 +62,11 @@ try
     var cognitoOptions = builder.Configuration.GetSection(CognitoOptions.Section).Get<CognitoOptions>()!;
     builder.Services.Configure<CognitoOptions>(builder.Configuration.GetSection(CognitoOptions.Section));
 
-    builder.Services.AddSingleton<IAmazonCognitoIdentityProvider>(_ =>
-        new AmazonCognitoIdentityProviderClient(RegionEndpoint.GetBySystemName(cognitoOptions.Region)));
+    // IAmazonCognitoIdentityProvider has static abstract members (AWS SDK v4) which
+    // prevent it from being used as a generic type argument in .NET 9 — register via instance.
+    IAmazonCognitoIdentityProvider cognitoClient =
+        new AmazonCognitoIdentityProviderClient(RegionEndpoint.GetBySystemName(cognitoOptions.Region));
+    builder.Services.AddSingleton(cognitoClient);
 
     builder.Services.AddScoped<CognitoAuthService>();
     builder.Services.AddScoped<ICognitoAuthService, CognitoAuthServiceAdapter>();
@@ -157,8 +160,11 @@ try
     // ─── Build app ───────────────────────────────────────────────────────────
     var app = builder.Build();
 
-    // Auto-migrate and seed on startup (dev only — use CI pipeline in prod)
-    if (app.Environment.IsDevelopment())
+    // Auto-migrate and seed on startup.
+    // In production use DATABASE_AUTO_MIGRATE=true env var to opt-in.
+    var autoMigrate = app.Environment.IsDevelopment() ||
+                      Environment.GetEnvironmentVariable("DATABASE_AUTO_MIGRATE") == "true";
+    if (autoMigrate)
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

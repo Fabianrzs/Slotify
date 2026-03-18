@@ -139,7 +139,9 @@ function InviteModal({ onClose }: { onClose: () => void }) {
 
   async function onSubmit(data: InviteStaffSchema) {
     await inviteStaff.mutateAsync({
-      ...data,
+      email: data.email!,
+      fullName: data.fullName!,
+      role: data.role!,
       phone: data.phone || undefined,
     })
     onClose()

@@ -10,7 +10,7 @@ import {
   useUpdateBranch,
   useSetBranchSchedule,
 } from '@/modules/branches'
-import type { Branch } from '@/modules/branches'
+import type { Branch, ScheduleEntry } from '@/modules/branches'
 import {
   branchSchema,
   scheduleSchema,
@@ -155,9 +155,21 @@ function BranchFormModal({ branch, onClose }: { branch: Branch | null; onClose: 
 
   async function onSubmit(data: BranchSchema) {
     if (isEditing) {
-      await updateBranch.mutateAsync({ id: branch.id, ...data, isActive: branch.isActive })
+      await updateBranch.mutateAsync({
+        id: branch.id,
+        name: data.name,
+        address: data.address || undefined,
+        phone: data.phone || undefined,
+        timezone: data.timezone,
+        isActive: branch.isActive,
+      })
     } else {
-      await createBranch.mutateAsync(data)
+      await createBranch.mutateAsync({
+        name: data.name,
+        address: data.address || undefined,
+        phone: data.phone || undefined,
+        timezone: data.timezone,
+      })
     }
     onClose()
   }
@@ -226,7 +238,13 @@ function ScheduleModal({ branch, onClose }: { branch: Branch; onClose: () => voi
   const watched = watch('schedule')
 
   async function onSubmit(data: { schedule: ScheduleSchema }) {
-    await setSchedule.mutateAsync({ id: branch.id, schedule: data.schedule })
+    const entries: ScheduleEntry[] = (data.schedule ?? []).map(s => ({
+      dayOfWeek: s.dayOfWeek ?? '',
+      isOpen: s.isOpen ?? false,
+      openTime: s.openTime,
+      closeTime: s.closeTime,
+    }))
+    await setSchedule.mutateAsync({ id: branch.id, schedule: entries })
     onClose()
   }
 

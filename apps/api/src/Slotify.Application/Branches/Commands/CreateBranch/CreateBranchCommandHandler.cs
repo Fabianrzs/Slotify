@@ -17,7 +17,9 @@ public sealed class CreateBranchCommandHandler(
             request.Name,
             request.Timezone,
             request.Address,
-            request.Phone);
+            request.Phone,
+            request.Latitude,
+            request.Longitude);
 
         context.Branches.Add(branch);
         await context.SaveChangesAsync(cancellationToken);

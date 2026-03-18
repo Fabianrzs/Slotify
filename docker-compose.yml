@@ -1,0 +1,90 @@
+services:
+  # ── SQL Server ─────────────────────────────────────────────────────────────
+  sqlserver:
+    image: mcr.microsoft.com/azure-sql-edge:latest   # ARM64 + AMD64 compatible
+    platform: linux/amd64
+    container_name: slotify-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${SQL_SA_PASSWORD}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # ── API ────────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: slotify-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: >-
+        Server=sqlserver,1433;Database=SlotifyDb;
+        User Id=sa;Password=${SQL_SA_PASSWORD};
+        TrustServerCertificate=true;
+      Cognito__Region: "${COGNITO_REGION}"
+      Cognito__UserPoolId: "${COGNITO_USER_POOL_ID}"
+      Cognito__ClientId: "${COGNITO_CLIENT_ID}"
+      AllowedOrigins__0: "http://localhost:3001"
+      AllowedOrigins__1: "http://localhost:3002"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  # ── Tenant App ─────────────────────────────────────────────────────────────
+  tenant:
+    build:
+      context: ./apps/tenant
+      dockerfile: Dockerfile
+    container_name: slotify-tenant
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: "http://api:8080"
+      NEXT_PUBLIC_COGNITO_REGION: "${COGNITO_REGION}"
+      NEXT_PUBLIC_COGNITO_USER_POOL_ID: "${COGNITO_USER_POOL_ID}"
+      NEXT_PUBLIC_COGNITO_CLIENT_ID: "${COGNITO_CLIENT_ID}"
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+  # ── Consumer App ───────────────────────────────────────────────────────────
+  consumer:
+    build:
+      context: ./apps/consumer
+      dockerfile: Dockerfile
+    container_name: slotify-consumer
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: "http://api:8080"
+      NEXT_PUBLIC_COGNITO_REGION: "${COGNITO_REGION}"
+      NEXT_PUBLIC_COGNITO_USER_POOL_ID: "${COGNITO_USER_POOL_ID}"
+      NEXT_PUBLIC_COGNITO_CLIENT_ID: "${COGNITO_CLIENT_ID}"
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:

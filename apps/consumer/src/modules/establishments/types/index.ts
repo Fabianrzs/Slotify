@@ -19,6 +19,9 @@ export interface PublicBranch {
   address?: string
   phone?: string
   timezone: string
+  latitude?: number
+  longitude?: number
+  distanceKm?: number
 }
 
 export interface PublicService {

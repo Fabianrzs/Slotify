@@ -15,6 +15,8 @@ public sealed class BranchConfiguration : IEntityTypeConfiguration<Branch>
         builder.Property(b => b.Timezone).HasMaxLength(100).IsRequired();
         builder.Property(b => b.Address).HasMaxLength(500);
         builder.Property(b => b.Phone).HasMaxLength(20);
+        builder.Property(b => b.Latitude);
+        builder.Property(b => b.Longitude);
 
         // WeeklySchedule uses a private backing field (_weeklySchedule).
         // EF Core detects this via naming convention and uses it for reads/writes.

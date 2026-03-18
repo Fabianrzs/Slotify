@@ -2,13 +2,16 @@
 
 import { use } from 'react'
 import Link from 'next/link'
-import { MapPin, Phone, Clock, Users, ChevronRight, Loader2 } from 'lucide-react'
+import { MapPin, Phone, Clock, Users, ChevronRight, Loader2, Navigation } from 'lucide-react'
 import { useGetProfile } from '@/modules/establishments'
+import { useGeolocation } from '@/hooks/useGeolocation'
 import { formatCurrency, formatDuration } from '@/lib/utils'
 
 export default function EstablishmentPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
-  const { data: profile, isLoading, error } = useGetProfile(slug)
+  const geo = useGeolocation()
+  const coords = geo.status === 'success' ? { lat: geo.lat, lng: geo.lng } : undefined
+  const { data: profile, isLoading, error } = useGetProfile(slug, coords)
 
   if (isLoading) {
     return (
@@ -58,6 +61,14 @@ export default function EstablishmentPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <div className="max-w-xl mx-auto px-4 py-6 space-y-6">
+        {/* Geolocation permission denied banner */}
+        {geo.status === 'denied' && (
+          <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-700">
+            <Navigation size={14} className="shrink-0" />
+            <span>Activa la ubicación en tu navegador para ver las sedes más cercanas primero.</span>
+          </div>
+        )}
+
         {/* Branches */}
         {profile.branches.length > 0 && (
           <section>
@@ -66,8 +77,17 @@ export default function EstablishmentPage({ params }: { params: Promise<{ slug: 
               {profile.branches.map(branch => (
                 <div key={branch.id} className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-start gap-3">
                   <MapPin size={16} className="text-gray-400 mt-0.5 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm text-gray-900">{branch.name}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-medium text-sm text-gray-900">{branch.name}</p>
+                      {branch.distanceKm != null && (
+                        <span className="shrink-0 text-xs text-indigo-600 font-medium">
+                          {branch.distanceKm < 1
+                            ? `${Math.round(branch.distanceKm * 1000)} m`
+                            : `${branch.distanceKm.toFixed(1)} km`}
+                        </span>
+                      )}
+                    </div>
                     {branch.address && <p className="text-xs text-gray-500 truncate">{branch.address}</p>}
                     {branch.phone && (
                       <a href={`tel:${branch.phone}`} className="text-xs text-indigo-600 flex items-center gap-1 mt-0.5">

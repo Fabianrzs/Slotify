@@ -32,7 +32,9 @@ public sealed class UpdateBranchCommandHandler(
             request.Address,
             request.Phone,
             request.Timezone,
-            IsActive = request.IsActive
+            IsActive = request.IsActive,
+            request.Latitude,
+            request.Longitude
         });
 
         await context.SaveChangesAsync(cancellationToken);

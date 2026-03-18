@@ -9,6 +9,8 @@ public sealed record BranchDto(
     string? Address,
     string? Phone,
     string Timezone,
+    double? Latitude,
+    double? Longitude,
     bool IsActive,
     DateTime CreatedAt,
     IReadOnlyList<ScheduleDto> WeeklySchedule
@@ -21,6 +23,8 @@ public sealed record BranchDto(
         branch.Address,
         branch.Phone,
         branch.Timezone,
+        branch.Latitude,
+        branch.Longitude,
         branch.IsActive,
         branch.CreatedAt,
         branch.WeeklySchedule.Select(ScheduleDto.FromSchedule).ToList());

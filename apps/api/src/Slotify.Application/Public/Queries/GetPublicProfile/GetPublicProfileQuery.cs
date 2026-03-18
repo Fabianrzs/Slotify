@@ -5,8 +5,9 @@ namespace Slotify.Application.Public.Queries.GetPublicProfile;
 /// <summary>
 /// Returns the public-facing profile of a tenant: name, branding, active branches, and active services.
 /// Resolved via the tenant context (X-Tenant-Slug header).
+/// When Latitude and Longitude are provided, branches are sorted by distance from those coordinates.
 /// </summary>
-public sealed record GetPublicProfileQuery : IRequest<PublicProfileDto>;
+public sealed record GetPublicProfileQuery(double? Latitude = null, double? Longitude = null) : IRequest<PublicProfileDto>;
 
 public sealed record PublicProfileDto(
     Guid TenantId,
@@ -28,7 +29,10 @@ public sealed record PublicBranchDto(
     string Name,
     string? Address,
     string? Phone,
-    string Timezone
+    string Timezone,
+    double? Latitude,
+    double? Longitude,
+    double? DistanceKm
 );
 
 public sealed record PublicServiceDto(

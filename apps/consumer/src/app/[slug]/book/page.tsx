@@ -1,11 +1,12 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeft, CheckCircle, Loader2 } from 'lucide-react'
 import { useGetProfile } from '@/modules/establishments'
 import { useGetAvailableDates, useGetAvailableSlots } from '@/modules/availability'
 import { useCreateBooking } from '@/modules/bookings'
+import { useGeolocation } from '@/hooks/useGeolocation'
 import { DatePicker } from '@/components/DatePicker'
 import { SlotPicker } from '@/components/SlotPicker'
 import { formatCurrency, formatDuration, formatDate, formatTime } from '@/lib/utils'
@@ -17,18 +18,28 @@ export default function BookPage({ params }: { params: Promise<{ slug: string }>
   const router = useRouter()
   const searchParams = useSearchParams()
   const preselectedServiceId = searchParams.get('serviceId') ?? ''
+  const geo = useGeolocation()
+  const coords = geo.status === 'success' ? { lat: geo.lat, lng: geo.lng } : undefined
 
-  const { data: profile, isLoading: profileLoading } = useGetProfile(slug)
+  const { data: profile, isLoading: profileLoading } = useGetProfile(slug, coords)
 
-  const [step, setStep] = useState<Step>(preselectedServiceId ? 'branch' : 'branch')
+  const [step, setStep] = useState<Step>('branch')
   const [selectedServiceId, setSelectedServiceId] = useState(preselectedServiceId)
   const [selectedBranchId, setSelectedBranchId] = useState('')
+
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth() + 1) // 1-indexed
   const [notes, setNotes] = useState('')
   const [bookingError, setBookingError] = useState<string | null>(null)
+
+  // Preselect nearest branch once profile loads with geolocation data
+  useEffect(() => {
+    if (selectedBranchId) return
+    const firstWithDistance = profile?.branches.find(b => b.distanceKm != null)
+    if (firstWithDistance) setSelectedBranchId(firstWithDistance.id)
+  }, [profile, selectedBranchId])
 
   const { data: availableDates = [], isLoading: datesLoading } = useGetAvailableDates(
     slug, selectedBranchId, selectedServiceId, calYear, calMonth,

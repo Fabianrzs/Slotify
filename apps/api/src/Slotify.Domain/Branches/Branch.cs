@@ -9,6 +9,8 @@ public sealed class Branch : Entity<Guid>, IHasTenantId
     public string? Address { get; private set; }
     public string? Phone { get; private set; }
     public string Timezone { get; private set; } = "America/Bogota";
+    public double? Latitude { get; private set; }
+    public double? Longitude { get; private set; }
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public IReadOnlyList<BranchSchedule> WeeklySchedule => _weeklySchedule.AsReadOnly();
@@ -17,7 +19,14 @@ public sealed class Branch : Entity<Guid>, IHasTenantId
 
     private Branch() { }
 
-    public static Branch Create(Guid tenantId, string name, string timezone, string? address = null, string? phone = null)
+    public static Branch Create(
+        Guid tenantId,
+        string name,
+        string timezone,
+        string? address = null,
+        string? phone = null,
+        double? latitude = null,
+        double? longitude = null)
         => new()
         {
             Id = Guid.NewGuid(),
@@ -26,9 +35,17 @@ public sealed class Branch : Entity<Guid>, IHasTenantId
             Address = address,
             Phone = phone,
             Timezone = timezone,
+            Latitude = latitude,
+            Longitude = longitude,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
+
+    public void SetCoordinates(double latitude, double longitude)
+    {
+        Latitude = latitude;
+        Longitude = longitude;
+    }
 
     public void SetSchedule(IEnumerable<BranchSchedule> schedule)
     {

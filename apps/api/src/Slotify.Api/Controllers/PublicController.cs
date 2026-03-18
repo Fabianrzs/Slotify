@@ -16,12 +16,19 @@ public sealed class PublicController(IMediator mediator) : ControllerBase
     /// Get the public profile of a business: name, branding, branches, and active services.
     /// Used by the consumer app to render the business profile page.
     /// </summary>
+    /// <summary>
+    /// Optional query params: lat, lng — when provided, branches are sorted by Haversine distance
+    /// and each branch includes a distanceKm field.
+    /// </summary>
     [HttpGet("profile")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetProfile(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetProfile(
+        [FromQuery] double? lat,
+        [FromQuery] double? lng,
+        CancellationToken cancellationToken)
     {
-        var profile = await mediator.Send(new GetPublicProfileQuery(), cancellationToken);
+        var profile = await mediator.Send(new GetPublicProfileQuery(lat, lng), cancellationToken);
         return Ok(profile);
     }
 }

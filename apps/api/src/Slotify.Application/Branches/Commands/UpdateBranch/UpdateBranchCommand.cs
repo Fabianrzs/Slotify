@@ -9,5 +9,7 @@ public sealed record UpdateBranchCommand(
     string? Address,
     string? Phone,
     string Timezone,
-    bool IsActive
+    bool IsActive,
+    double? Latitude = null,
+    double? Longitude = null
 ) : IRequest<BranchDto>;

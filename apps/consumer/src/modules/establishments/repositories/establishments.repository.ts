@@ -5,6 +5,9 @@ export function createEstablishmentsRepository(slug: string) {
   const http = createHttpClient(slug)
 
   return {
-    getProfile: (): Promise<TenantProfile> => http.get('/api/public/profile'),
+    getProfile: (coords?: { lat: number; lng: number }): Promise<TenantProfile> => {
+      const qs = coords ? `?lat=${coords.lat}&lng=${coords.lng}` : ''
+      return http.get(`/api/public/profile${qs}`)
+    },
   }
 }

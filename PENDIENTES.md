@@ -214,16 +214,17 @@
 - [x] Página de confirmación (`/[slug]/book/[bookingId]/confirmation`)
 - [x] Mis reservas (`/mis-reservas`) — lista con opción de cancelar
 
-### Geolocalización (PENDIENTE — requerimiento nuevo)
+### Geolocalización
 > **Decisión de producto:** Sedes y servicios deben priorizarse según la ubicación del usuario.
-- [ ] Backend: añadir `lat` / `lng` a la entidad `Branch` y al `PublicBranchDto`
-- [ ] Backend: `GET /api/public/profile?lat=&lng=` — ordenar sedes por distancia al usuario
-- [ ] Backend: índice espacial o cálculo Haversine en query para ordenar por proximidad
-- [ ] Frontend Consumer: `useGeolocation()` hook — solicita permiso de ubicación al usuario
-- [ ] Frontend Consumer: si permiso concedido, pasar coordenadas a la query del perfil
-- [ ] Frontend Consumer: mostrar distancia en cada sede ("~1.2 km")
-- [ ] Frontend Consumer: preseleccionar la sede más cercana en el wizard de reserva
-- [ ] Frontend Consumer: banner/prompt amigable cuando el usuario deniega el permiso
+- [x] Backend: añadir `lat` / `lng` a la entidad `Branch` y al `PublicBranchDto`
+- [x] Backend: `GET /api/public/profile?lat=&lng=` — ordenar sedes por distancia Haversine al usuario
+- [x] Backend: `CreateBranchCommand` y `UpdateBranchCommand` aceptan `latitude`/`longitude`
+- [x] Frontend Consumer: `useGeolocation()` hook — solicita permiso de ubicación al usuario
+- [x] Frontend Consumer: si permiso concedido, pasar coordenadas a la query del perfil
+- [x] Frontend Consumer: mostrar distancia en cada sede ("~1.2 km" / "450 m")
+- [x] Frontend Consumer: preseleccionar la sede más cercana en el wizard de reserva
+- [x] Frontend Consumer: banner amigable cuando el usuario deniega el permiso
+- [ ] Frontend Tenant: campos lat/lng en modal de crear/editar sede (+ integración Google Maps opcional)
 
 ---
 
@@ -254,7 +255,7 @@
 ### Frontend — Consumer App
 - [x] Flujo de reserva E2E completo (wizard + confirmación)
 - [x] Cancelar reserva desde "Mis reservas"
-- [ ] Geolocalización — preselección de sede más cercana (ver sección Geolocalización arriba)
+- [x] Geolocalización — preselección de sede más cercana (ver sección Geolocalización arriba)
 - [ ] Google Calendar link en página de confirmación
 - [ ] Detalle expandido de reserva individual
 
@@ -399,6 +400,16 @@
 - [ ] Tests E2E del flujo de reserva completo (Playwright)
 - [ ] Test de carga básico (k6): 500 usuarios creando reservas simultáneamente
 
+### Docker Compose (local)
+- [x] `Dockerfile` para la API .NET (multi-stage build)
+- [x] `Dockerfile` para la app Tenant (Next.js standalone)
+- [x] `Dockerfile` para la app Consumer (Next.js standalone)
+- [x] `next.config.ts` con `output: 'standalone'` en tenant y consumer
+- [x] `docker-compose.yml` — levanta SQL Server + API + Tenant + Consumer con un solo comando
+- [x] `.env.example` con variables requeridas (SQL SA password + Cognito credentials)
+- [ ] Script de init DB (`docker-compose up` + `dotnet ef database update` automático)
+- [ ] GitHub Actions: build de imágenes Docker en CI
+
 ### Infraestructura AWS
 - [ ] Configurar RDS (SQL Server) con Multi-AZ
 - [ ] Configurar ECS (Fargate) para la API .NET
@@ -491,7 +502,7 @@
 | S1 | Autenticación y Multi-tenancy (Cognito) | Completado | 100% |
 | S2 | Configuración del Negocio | Completado | 100% |
 | S3 | Motor de Disponibilidad | Completado | 100% |
-| S4 | Flujo de Reserva E2E | Pendiente | 0% |
+| S4 | Flujo de Reserva E2E | En progreso | 55% |
 | S5 | Dashboard y Gestión (Tenant) | Pendiente | 0% |
 | S6 | Pagos MercadoPago | Pendiente | 0% |
 | S7 | Reportes y Analytics | Pendiente | 0% |

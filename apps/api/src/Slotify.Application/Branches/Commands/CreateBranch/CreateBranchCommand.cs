@@ -8,7 +8,9 @@ public sealed record CreateBranchCommand(
     string Name,
     string? Address,
     string? Phone,
-    string Timezone
+    string Timezone,
+    double? Latitude = null,
+    double? Longitude = null
 ) : IRequest<BranchDto>, IRequiresPlanLimit
 {
     public PlanLimitCheck LimitCheck => PlanLimitCheck.Branch;

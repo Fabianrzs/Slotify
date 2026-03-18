@@ -19,10 +19,21 @@ public sealed class GetPublicProfileQueryHandler(
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException("Tenant", tenantContext.TenantId);
 
-        var branches = await context.Branches
+        var rawBranches = await context.Branches
             .Where(b => b.TenantId == tenantContext.TenantId && b.IsActive)
-            .Select(b => new PublicBranchDto(b.Id, b.Name, b.Address, b.Phone, b.Timezone))
             .ToListAsync(cancellationToken);
+
+        var branches = rawBranches
+            .Select(b =>
+            {
+                var distance = (request.Latitude.HasValue && request.Longitude.HasValue && b.Latitude.HasValue && b.Longitude.HasValue)
+                    ? HaversineKm(request.Latitude.Value, request.Longitude.Value, b.Latitude.Value, b.Longitude.Value)
+                    : (double?)null;
+                return new PublicBranchDto(b.Id, b.Name, b.Address, b.Phone, b.Timezone, b.Latitude, b.Longitude, distance);
+            })
+            .OrderBy(b => b.DistanceKm ?? double.MaxValue)
+            .ThenBy(b => b.Name)
+            .ToList();
 
         var services = await context.Services
             .Where(s => s.TenantId == tenantContext.TenantId && s.IsActive)
@@ -51,4 +62,18 @@ public sealed class GetPublicProfileQueryHandler(
             branches,
             serviceDtos);
     }
+
+    /// <summary>Haversine great-circle distance in kilometres.</summary>
+    private static double HaversineKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double R = 6371.0;
+        var dLat = ToRad(lat2 - lat1);
+        var dLon = ToRad(lon2 - lon1);
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+              + Math.Cos(ToRad(lat1)) * Math.Cos(ToRad(lat2))
+              * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+    }
+
+    private static double ToRad(double deg) => deg * Math.PI / 180.0;
 }

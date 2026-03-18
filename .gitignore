@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.*.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Turbo
+.turbo/
+
+# Test
+coverage/
+
+# Migrations (keep in source control in prod)
+# apps/api/src/Slotify.Infrastructure/Persistence/Migrations/

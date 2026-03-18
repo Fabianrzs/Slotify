@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: 79 70 229;    /* indigo-600 */
+  --color-primary-hover: 67 56 202; /* indigo-700 */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  @apply text-gray-900 antialiased;
+}
